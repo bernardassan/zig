@@ -1767,6 +1767,22 @@ pub fn waitid(
     return sqe;
 }
 
+/// Available since kernel 6.7
+pub fn futex_wake(
+    self: *IoUring,
+    user_data: u64,
+    futex: *u32,
+    max_wake_count: u64,
+    mask: u64,
+    futex_flags: linux.FUTEX_WAKE_OP,
+    flags: u32, // They are currently unused, and hence 0 should be passed
+) !*Sqe {
+    const sqe = try self.get_sqe();
+    sqe.prep_waitid(futex, max_wake_count, mask, futex_flags, flags);
+    sqe.user_data = user_data;
+    return sqe;
+}
+
 pub fn register_buffers_sparse(self: *IoUring, nr: u32) !void {
     assert(self.fd >= 0);
 
