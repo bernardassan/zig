@@ -724,13 +724,13 @@ pub fn futex_4arg(uaddr: *const anyopaque, futex_op: FUTEX_OP, val: u32, timeout
     );
 }
 
-/// Given an array of `futex2_waitone`, wait on each uaddr.
+/// Given an array of `Futex2.WaitOne`, wait on each uaddr.
 /// The thread wakes if a futex_wake() is performed at any uaddr.
 /// The syscall returns immediately if any futex has *uaddr != val.
 /// timeout is an optional, absolute timeout value for the operation.
 /// The `flags` argument is for future use and currently should be `.{}`.
 /// Flags for private futexes, sizes, etc. should be set on the
-/// individual flags of each `futex2_waitone`.
+/// individual flags of each `Futex2.WaitOne`.
 ///
 /// Returns the array index of one of the woken futexes.
 /// No further information is provided: any number of other futexes may also
@@ -740,20 +740,21 @@ pub fn futex_4arg(uaddr: *const anyopaque, futex_op: FUTEX_OP, val: u32, timeout
 /// most recently woken, nor...)
 ///
 /// Requires at least kernel v5.16.
+// TODO: can't we use slices here? and assert `Futex2.waitone_max`
 pub fn futex2_waitv(
-    futexes: [*]const futex2_waitone,
-    /// Length of `futexes`.  Max of FUTEX2_WAITONE_MAX.
-    nr_futexes: u32,
-    flags: FUTEX2_FLAGS_WAITV,
+    /// The length of `futexes` slice must not exceed `Futex2.waitone_max`
+    futexes: []const Futex2.WaitOne,
+    flags: Futex2.Waitv,
     /// Optional absolute timeout.  Always 64-bit, even on 32-bit platforms.
     timeout: ?*const kernel_timespec,
     /// Clock to be used for the timeout, realtime or monotonic.
     clockid: clockid_t,
 ) usize {
+    assert(futexes.len <= Futex2.waitone_max);
     return syscall5(
         .futex_waitv,
         @intFromPtr(futexes),
-        nr_futexes,
+        @intCast(futexes.len),
         @as(u32, @bitCast(flags)),
         @intFromPtr(timeout),
         @intFromEnum(clockid),
@@ -771,8 +772,8 @@ pub fn futex2_wait(
     /// Value of `uaddr`.
     val: usize,
     /// Bitmask to match against incoming wakeup masks.  Must not be zero.
-    mask: usize,
-    flags: FUTEX2_FLAGS,
+    mask: Futex2.Bitset,
+    flags: Futex2.Wait,
     /// Optional absolute timeout.  Always 64-bit, even on 32-bit platforms.
     timeout: ?*const kernel_timespec,
     /// Clock to be used for the timeout, realtime or monotonic.
@@ -782,7 +783,7 @@ pub fn futex2_wait(
         .futex_wait,
         @intFromPtr(uaddr),
         val,
-        mask,
+        @intFromEnum(mask),
         @as(u32, @bitCast(flags)),
         @intFromPtr(timeout),
         @intFromEnum(clockid),
@@ -798,16 +799,16 @@ pub fn futex2_wake(
     /// Futex to wake
     uaddr: *const anyopaque,
     /// Bitmask to match against waiters.
-    mask: usize,
+    mask: Futex2.Bitset,
     /// Maximum number of waiters on the futex to wake.
     nr_wake: i32,
-    flags: FUTEX2_FLAGS,
+    flags: Futex2.Wake,
 ) usize {
     return syscall4(
         .futex_wake,
         @intFromPtr(uaddr),
-        mask,
-        @as(u32, @bitCast(nr_wake)),
+        @intFromEnum(mask),
+        @intCast(nr_wake),
         @as(u32, @bitCast(flags)),
     );
 }
@@ -816,11 +817,12 @@ pub fn futex2_wake(
 /// Identical to `FUTEX.CMP_REQUEUE`, except it is part of the futex2 family of calls.
 ///
 /// Requires at least kernel v6.7.
+// TODO: test to ensure I didn't break it
 pub fn futex2_requeue(
     /// The source and destination futexes.  Must be a 2-element array.
-    waiters: [*]const futex2_waitone,
+    waiters: *const [2]Futex2.WaitOne,
     /// Currently unused.
-    flags: FUTEX2_FLAGS_REQUEUE,
+    flags: Futex2.Requeue,
     /// Maximum number of waiters to wake on the source futex.
     nr_wake: i32,
     /// Maximum number of waiters to transfer to the destination futex.
@@ -830,8 +832,8 @@ pub fn futex2_requeue(
         .futex_requeue,
         @intFromPtr(waiters),
         @as(u32, @bitCast(flags)),
-        @as(u32, @bitCast(nr_wake)),
-        @as(u32, @bitCast(nr_requeue)),
+        @intCast(nr_wake),
+        @intCast(nr_requeue),
     );
 }
 
@@ -3669,10 +3671,7 @@ pub const FUTEX_WAKE_OP_CMP = enum(u4) {
 pub const Futex2 = struct {
     /// Max numbers of elements in a `futex_waitv` .ie `WaitOne` array
     /// matches FUTEX_WAITV_MAX
-    pub const waitv_max = 128;
-
-    /// Max numbers of elements in a `futex2_waitone` array.
-    pub const waitone_max = waitv_max;
+    pub const waitone_max = 128;
 
     /// For futex v2 API, the size of the futex at the uaddr.  v1 futex are
     /// always implicitly U32.  As of kernel v6.14, only U32 is implemented
@@ -3684,22 +3683,16 @@ pub const Futex2 = struct {
         U64 = 3,
     };
 
-    // TODO: ensure it is correct
     /// flags for `futex2_requeue` syscall
+    /// As of kernel 6.14 there are no defined flags to futex2_requeue.
     pub const Requeue = packed struct(u32) {
-        size: Size,
-        _3: u5 = 0,
-        private: bool,
-        _9: u24 = 0,
+        _: u32 = 0,
     };
 
-    // TODO: ensure it is correct
     /// flags for `futex2_waitv` syscall
+    /// As of kernel 6.14 there are no defined flags to futex2_waitv.
     pub const Waitv = packed struct(u32) {
-        size: Size,
-        _3: u5 = 0,
-        private: bool,
-        _9: u24 = 0,
+        _: u32 = 0,
     };
 
     /// flags for `futex2_wait` syscall

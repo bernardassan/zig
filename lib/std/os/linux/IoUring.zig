@@ -1791,7 +1791,8 @@ pub fn futex_wait(
     max_wake_count: u64,
     mask: linux.Futex2.Bitset,
     futex_flags: linux.Futex2.Wait,
-    flags: u32, // They are currently unused, and hence 0 should be passed
+    /// They are currently unused, and hence 0 should be passed
+    flags: u32,
 ) !*Sqe {
     const sqe = try self.get_sqe();
     sqe.prep_futex_wait(futex, max_wake_count, mask, futex_flags, flags);
@@ -1805,7 +1806,8 @@ pub fn futex_waitv(
     self: *IoUring,
     user_data: u64,
     futexv: []linux.Futex2.WaitOne,
-    flags: linux.Futex2.Waitv, // They are currently unused, and hence 0 should be passed
+    /// They are currently unused, and hence 0 should be passed
+    flags: u32,
 ) !*Sqe {
     const sqe = try self.get_sqe();
     sqe.prep_futex_waitv(futexv, flags);
@@ -3282,7 +3284,8 @@ pub const Sqe = extern struct {
         max_wake_count: u64,
         mask: linux.Futex2.Bitset,
         futex_flags: linux.Futex2.Wait,
-        flags: u32, // They are currently unused, and hence 0 should be passed
+        /// They are currently unused, and hence 0 should be passed
+        flags: u32,
     ) void {
         sqe.prep_rw(
             .futex_wait,
@@ -3298,7 +3301,8 @@ pub const Sqe = extern struct {
     pub fn prep_futex_waitv(
         sqe: *Sqe,
         futexv: []linux.Futex2.WaitOne,
-        flags: u32, // They are currently unused, and hence 0 should be passed
+        /// They are currently unused, and hence 0 should be passed
+        flags: u32,
     ) void {
         sqe.prep_rw(
             .futex_waitv,
