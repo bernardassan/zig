@@ -14,7 +14,8 @@ permissions:
 jobs:
   x86_64-linux-debug:
     timeout-minutes: 540
-    runs-on: [self-hosted, Linux, x86_64]
+    # runs-on: [self-hosted, Linux, x86_64]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +25,8 @@ jobs:
         run: sh ci/x86_64-linux-debug.sh
   x86_64-linux-debug-llvm:
     timeout-minutes: 540
-    runs-on: [self-hosted, Linux, x86_64]
+    # runs-on: [self-hosted, Linux, x86_64]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +36,8 @@ jobs:
         run: sh ci/x86_64-linux-debug-llvm.sh
   x86_64-linux-release:
     timeout-minutes: 540
-    runs-on: [self-hosted, Linux, x86_64]
+    # runs-on: [self-hosted, Linux, x86_64]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +46,8 @@ jobs:
       - name: Build and Test
         run: sh ci/x86_64-linux-release.sh
   aarch64-linux-debug:
-    runs-on: [self-hosted, Linux, aarch64]
+    # runs-on: [self-hosted, Linux, aarch64]
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +56,8 @@ jobs:
       - name: Build and Test
         run: sh ci/aarch64-linux-debug.sh
   aarch64-linux-release:
-    runs-on: [self-hosted, Linux, aarch64]
+    # runs-on: [self-hosted, Linux, aarch64]
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,7 +66,8 @@ jobs:
       - name: Build and Test
         run: sh ci/aarch64-linux-release.sh
   aarch64-macos-debug:
-    runs-on: [self-hosted, macOS, aarch64]
+    # runs-on: [self-hosted, macOS, aarch64]
+    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,7 +76,8 @@ jobs:
       - name: Build and Test
         run: ci/aarch64-macos-debug.sh
   aarch64-macos-release:
-    runs-on: [self-hosted, macOS, aarch64]
+    # runs-on: [self-hosted, macOS, aarch64]
+    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,7 +87,8 @@ jobs:
         run: ci/aarch64-macos-release.sh
   x86_64-windows-debug:
     timeout-minutes: 420
-    runs-on: [self-hosted, Windows, x86_64]
+    # runs-on: [self-hosted, Windows, x86_64]
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,7 +98,8 @@ jobs:
         run: ci/x86_64-windows-debug.ps1
   x86_64-windows-release:
     timeout-minutes: 420
-    runs-on: [self-hosted, Windows, x86_64]
+    # runs-on: [self-hosted, Windows, x86_64]
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
